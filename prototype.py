@@ -29,6 +29,15 @@ W.WWWWWWWWW.........
     )
 ]
 
+fog = [True for _ in level]
+dfs_buffer = []
+def reset_dfs_buffer():
+    dfs_buffer.clear()
+    for _ in level:
+        dfs_buffer.append(False)
+
+VISION_RADIUS = 2
+
 LEVEL_DIM = 20
 LEVEL_SIZE = LEVEL_DIM * LEVEL_DIM
 assert len(level) == LEVEL_SIZE
@@ -55,7 +64,10 @@ def display_level():
         if i == PLAYER_POS:
             print("@", end=" ")
         else:
-            print(level[i], end=" ")
+            if (fog[i]):
+                print("~", end=" ")
+            else: 
+                print(level[i], end=" ")
 
         if (i + 1) % LEVEL_DIM == 0:
             print()
@@ -99,6 +111,7 @@ def handle_direction(key):
         return
 
     PLAYER_POS = new_pos
+    check_vision(*coords, VISION_RADIUS)
 
 
 def handle_input(key: str):
@@ -108,6 +121,37 @@ def handle_input(key: str):
     else:
         print(f"Unknown input `{key}`\n")
 
+
+def check_vision(x, y, radius):
+    if x < 0 or x >= LEVEL_DIM:
+        return
+    if y < 0 or y >= LEVEL_DIM:
+        return
+
+    pos = coord2pos(x, y)
+    if radius == VISION_RADIUS:
+        reset_dfs_buffer()
+
+    if dfs_buffer[pos]:
+        # already traversed
+        return
+    
+    # mark current spot as visible and traversed
+    fog[pos] = False
+    dfs_buffer[pos] = True
+    if radius == 0:
+        return
+
+    # check surroundings
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            if abs(dx) + abs(dy) != 1:
+                continue
+
+            check_vision(x + dx, y + dy, radius-1)
+
+# initial fog
+check_vision(*pos2coord(PLAYER_POS), VISION_RADIUS)
 
 # display_level()
 
