@@ -24,12 +24,11 @@ show_loop:
     ; if dl >= 20 then reset to 0 and print newline
     cmp dl, 20
     jl continue_loop
-    mov ah, 0x02  ; Function to move cursor to start (carriage return)
-    mov dl, 0x0D  ; Carriage return character
-    int 0x21      ; DOS interrupt to perform output
-    mov ah, 0x02  ; Function to output
-    mov dl, 0x0A  ; Line feed character
-    int 0x21      ; DOS interrupt to perform output
+    mov al,0x0D
+    call display_letter
+    mov al,0x0A
+    call display_letter
+
     mov dl, 0
 
 continue_loop:
