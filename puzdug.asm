@@ -1,8 +1,9 @@
 org 0x0100
 
 player_pos: equ 0x0200      ; 2 bytes for player position
-level: equ 0x0300           ; Start of level array in memory
-board_size: equ 400         ; Size of the board
+
+level_dim: equ 25
+level_size: equ 400         ; level_dim^2
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
@@ -22,58 +23,52 @@ start:
     mov ds,ax
     mov es,ax
 
+init_board:
     cld ; clear direction flag - di will increment
     xor di,di ; set di to 0
 
-init_board:
-    mov ax, fog_char
+    mov cx,level_size
+    xor dx,dx
+init_board_loop:
+    ; store empty_char everywhere on screen
+    mov ax, empty_char
     stosw
 
-    ; Initialize player position
-    mov word [player_pos], 0
-; wipe_level:
-;     mov si, level           ; SI points to the level array
-;     mov cx, board_size
-;     mov al, '.'             ; Fill with dots
-; wipe_loop:
-;     stosb                   ; Store AL at DS:SI and increment SI
-;     loop wipe_loop          ; Decrement CX, if CX != 0, loop back
+    ; newline logic
+    inc dx
+    cmp dx, level_dim
+    jl continue_board_loop ; jump if we are not yet at newline
+    add di, (row_width - level_dim) * 2
+    xor dx, dx
 
-; show_board:
-;     mov si, level           ; SI points to the level array
-;     xor di, di              ; DI starts at 0 within the video memory segment
-;     mov cx, board_size      ; CX is the number of characters to display
+continue_board_loop:
+    loop init_board_loop          ; Decrement CX, if CX != 0, loop back
 
-; show_loop:
-;     ; Check if we are at player_pos and print the player character
-;     mov bx, 400
-;     sub bx, [player_pos]
-;     cmp cx, bx
-;     jne board_letter
-;     mov al, '@'
-;     jmp board_write
-
-; board_letter:
-;     lodsb                   ; Load byte at DS:SI into AL and increment SI
-
-; board_write:
-;     stosw                   ; Write AL to video memory at ES:DI and increment DI by 2
-;     mov byte [di-1], 0x07   ; Set attribute byte (white on black)
-
-;     inc dx
-;     ; if dx >= 20 then reset column counter and move to next line
-;     cmp dx, 20
-;     jl continue_loop
-
-;     ; Reset for new row
-;     add di, (row_width - 20) * 2
-;     xor dx, dx
-
-; continue_loop:
-;     loop show_loop          ; Decrement CX, if CX != 0, loop back
+    ; press any key to exit
+    call read_keyboard
 
 do_exit:
     int 0x20                ; Terminate the program
 
 ; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
 ; dw 0xAA55                   ; Boot sector signature
+
+; read keyboard input into AL
+read_keyboard:
+    ; save other registers
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+
+    mov ah,0x00 ; set AH for keyboard read
+    int 0x16 ; call interrupt to read keyboard
+
+    ; restore other registers
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    ret ; returns to caller
