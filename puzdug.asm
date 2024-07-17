@@ -4,8 +4,9 @@ org 0x0100
 player_x: equ 0x0200      ; 2 bytes for player position
 player_y: equ 0x0201
 
-level_dim: equ 25
-level_size: equ 400         ; level_dim^2
+level_width: equ 25
+level_height: equ 16
+level_size: equ 400         ; level_width * level_height
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
@@ -44,9 +45,9 @@ init_board_loop:
 
     ; newline logic
     inc dx
-    cmp dx, level_dim
+    cmp dx, level_width
     jl continue_board_loop ; jump if we are not yet at newline
-    add di, (row_width - level_dim) * 2
+    add di, (row_width - level_width) * 2
     xor dx, dx
 
 continue_board_loop:
@@ -86,7 +87,12 @@ get_input:
     jmp get_input
 
 go_up:
-    dec byte [player_y]
+    mov al, [player_y]
+    dec al
+    cmp al, 0
+    js init_board
+
+    mov [player_y], al
     jmp init_board
 
 go_left:
@@ -94,7 +100,12 @@ go_left:
     jmp init_board
 
 go_down:
-    inc byte [player_y]
+    mov al, [player_y]
+    inc al
+    cmp al, level_height
+    jae init_board
+    
+    mov [player_y], al
     jmp init_board
 
 go_right:
@@ -108,6 +119,9 @@ do_exit:
 
 ; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
 ; dw 0xAA55                   ; Boot sector signature
+
+can_move_to:
+    
 
 ; read keyboard input into AL
 read_keyboard:
