@@ -64,8 +64,44 @@ draw_player:
     mov ax, player_char
     stosw
 
+get_input:
     ; press any key to exit
     call read_keyboard
+
+    cmp al,0x1b ; check for escape key pressed
+    je do_exit
+
+    cmp al,'w'
+    je go_up
+
+    cmp al,'a'
+    je go_left
+
+    cmp al,'d'
+    je go_right
+
+    cmp al,'s'
+    je go_down
+
+    jmp get_input
+
+go_up:
+    dec byte [player_y]
+    jmp init_board
+
+go_left:
+    dec byte [player_x]
+    jmp init_board
+
+go_down:
+    inc byte [player_y]
+    jmp init_board
+
+go_right:
+    inc byte [player_x]
+    jmp init_board
+
+
 
 do_exit:
     int 0x20                ; Terminate the program
