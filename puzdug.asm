@@ -61,11 +61,16 @@ draw_player:
     add ax, dx
     add ax, dx
     mov di,ax
-    ; mov di,[player_pos]
+
     mov ax, player_char
     stosw
 
 get_input:
+    ; dh/dl start as current position
+    mov dx,[player_x]
+    ; mov dh,[player_x]
+    ; mov dl,[player_y]
+
     ; press any key to exit
     call read_keyboard
 
@@ -87,41 +92,38 @@ get_input:
     jmp get_input
 
 go_up:
-    mov al, [player_y]
-    dec al
-    cmp al, 0
-    js init_board
-
-    mov [player_y], al
-    jmp init_board
-
-go_left:
-    dec byte [player_x]
-    jmp init_board
-
+    dec dh
+    cmp dh, 0
+    js hit_wall
+    jmp can_move
 go_down:
-    mov al, [player_y]
-    inc al
-    cmp al, level_height
-    jae init_board
-    
-    mov [player_y], al
-    jmp init_board
-
+    inc dh
+    cmp dh, level_height
+    jae hit_wall
+    jmp can_move
+go_left:
+    dec dl
+    cmp dl, 0
+    js hit_wall
+    jmp can_move
 go_right:
-    inc byte [player_x]
+    inc dl
+    cmp dl, level_width
+    jae hit_wall
+can_move:
+    ; passed checks - update position
+    mov [player_x],dx
     jmp init_board
 
-
+hit_wall:
+    ; TODO: set status flag
+    jmp init_board
 
 do_exit:
     int 0x20                ; Terminate the program
 
 ; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
 ; dw 0xAA55                   ; Boot sector signature
-
-can_move_to:
-    
 
 ; read keyboard input into AL
 read_keyboard:
