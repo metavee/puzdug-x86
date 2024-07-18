@@ -16,9 +16,14 @@ row_width: equ 80           ; Width of the screen in characters
 ; https://www.lookuptables.com/text/extended-ascii-table
 ; https://www.rapidtables.com/convert/number/decimal-to-hex.html?x=247
 wall_char: equ 0x04b2 ; black bg, red fg, heavy texture ▓
-empty_char: equ 0x07b0 ; black bg, grey fg, light texture ░
+empty_char: equ 0x072e ; black bg, grey fg, .
 fog_char: equ 0x07f7 ; black bg, grey fg, almost equal ≈
 player_char: equ 0x0f40 ; black bg, white fg, @
+
+; hardcoded single wall in array index
+wall1_start_index: equ 2 * (2*level_width + 12)
+wall1_length: equ 12
+wall1_step: equ 2*level_width
 
 start:
     mov ax,0x0002 ; set video mode to color text
@@ -44,6 +49,13 @@ init_level_loop:
     mov word [bx], empty_char
     add bx,2
     loop init_level_loop
+init_wall1:
+    mov bx, (level_addr + wall1_start_index)
+    mov cx, wall1_length
+init_wall1_loop:
+    mov word [bx], wall_char
+    add bx, wall1_step
+    loop init_wall1_loop
 
 render_level:
     cld ; clear direction flag - di will increment
