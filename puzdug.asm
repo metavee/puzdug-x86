@@ -139,6 +139,23 @@ go_right:
     cmp dl, level_width
     jae hit_wall
 can_move:
+    ; check for wall - coordinate conversion
+    movzx ax, dh
+    push dx
+    mov dl, row_width*2
+    mul dl
+    pop dx
+
+    mov bx,level_addr
+    add bx,ax
+
+    movzx ax, dl
+    add bx,ax
+    add bx,ax
+
+    cmp word [bx],wall_char
+    je hit_wall
+
     ; passed checks - update position
     mov [player_x],dx
     jmp render_level
