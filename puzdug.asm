@@ -4,6 +4,8 @@ org 0x0100
 player_x: equ 0x0200      ; 2 bytes for player position
 player_y: equ 0x0201
 
+level_addr: equ 0x0220 ; 800 bytes for level
+
 level_width: equ 25
 level_height: equ 16
 level_size: equ 400         ; level_width * level_height
@@ -32,26 +34,40 @@ start:
     mov byte [player_x],5
     mov byte [player_y],7
 
-init_board:
+init_level:
+    ; Set up level array
+    mov bx, level_addr
+    mov cx,level_size
+    xor dx,dx
+init_level_loop:
+    ; empty char by default
+    mov word [bx], empty_char
+    add bx,2
+    loop init_level_loop
+
+render_level:
     cld ; clear direction flag - di will increment
     xor di,di ; set di to 0
 
     mov cx,level_size
     xor dx,dx
-init_board_loop:
+
+    mov bx,level_addr
+render_level_loop:
     ; store everywhere on screen
-    mov ax, fog_char
+    mov ax, [bx]
     stosw
+    add bx,2
 
     ; newline logic
     inc dx
     cmp dx, level_width
-    jl continue_board_loop ; jump if we are not yet at newline
+    jl continue_level_loop ; jump if we are not yet at newline
     add di, (row_width - level_width) * 2
     xor dx, dx
 
-continue_board_loop:
-    loop init_board_loop          ; Decrement CX, if CX != 0, loop back
+continue_level_loop:
+    loop render_level_loop          ; Decrement CX, if CX != 0, loop back
 
 draw_player:
     movzx ax, byte [player_y] ; Zero-extend player_y to ax
@@ -113,11 +129,11 @@ go_right:
 can_move:
     ; passed checks - update position
     mov [player_x],dx
-    jmp init_board
+    jmp render_level
 
 hit_wall:
     ; TODO: set status flag
-    jmp init_board
+    jmp render_level
 
 do_exit:
     int 0x20                ; Terminate the program
@@ -125,7 +141,7 @@ do_exit:
 ; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
 ; dw 0xAA55                   ; Boot sector signature
 
-; read keyboard input into AL
+; read keylevel input into AL
 read_keyboard:
     ; save other registers
     push bx
@@ -134,8 +150,8 @@ read_keyboard:
     push si
     push di
 
-    mov ah,0x00 ; set AH for keyboard read
-    int 0x16 ; call interrupt to read keyboard
+    mov ah,0x00 ; set AH for keylevel read
+    int 0x16 ; call interrupt to read keylevel
 
     ; restore other registers
     pop di
