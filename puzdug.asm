@@ -1,4 +1,5 @@
-org 0x0100
+org 0x0100; for dosbox
+; org 0x7c00 ; for boot
 
 section .bss
 
@@ -83,13 +84,11 @@ continue_level_loop:
     loop render_level_loop          ; Decrement CX, if CX != 0, loop back
 
 draw_player:
-    movzx ax, byte [player_pos+1] ; Zero-extend player_y to ax
-    mov dl,row_width*2
-    mul dl
-    movzx dx, byte [player_pos] ; Zero-extend player_x to dx
-    add ax, dx
-    add ax, dx
-    mov di,ax
+    mov dx, [player_pos]
+    mov cx, row_width
+    call xy2offset
+    shl dx,1
+    mov di,dx
 
     mov ax, player_char
     stosw
@@ -141,18 +140,13 @@ go_right:
     jae hit_wall
 can_move:
     ; check for wall - coordinate conversion
-    movzx ax, dh
     push dx
-    mov dl, row_width*2
-    mul dl
+    mov cx, level_width
+    call xy2offset
+    shl dx,1
+    mov bx,dx
+    add bx,level_addr
     pop dx
-
-    mov bx,level_addr
-    add bx,ax
-
-    movzx ax, dl
-    add bx,ax
-    add bx,ax
 
     cmp word [bx],wall_char
     je hit_wall
@@ -190,3 +184,23 @@ read_keyboard:
     pop cx
     pop bx
     ret ; returns to caller
+
+xy2offset:
+    ; take xy value (dh=y, dl=x) and turn into a 1d offset (replace dx)
+    ; cx should contain the effective row width
+    push ax
+    push dx ; save value since multiplication overwrites
+
+    ; Calculate the row offset
+    movzx ax, dh        ; Move y-coordinate to ax (without sign extension)
+    mul cx              ; ax *= row_width
+
+    ; Calculate total offset with x-coordinate
+    pop dx
+    and dx, 0x00FF  ; Mask with 0x00FF to zero out DH
+
+    add ax, dx          ; Combine the x-offset with the row offset
+    mov dx, ax          ; Resulting offset in dx
+
+    pop ax ; Restore preserved registers             
+    ret
