@@ -63,6 +63,10 @@ init_wall1_loop:
     add bx, wall1_step
     loop init_wall1_loop
 
+    ; initial fog clear
+    mov dx, [player_pos]
+    call reveal_fog
+
 render_level:
     cld ; clear direction flag - di will increment
     xor di,di ; set di to 0
@@ -166,6 +170,7 @@ can_move:
 
     ; passed checks - update position
     mov [player_pos],dx
+    call reveal_fog
     jmp render_level
 
 hit_wall:
@@ -216,4 +221,39 @@ xy2offset:
     mov dx, ax          ; Resulting offset in dx
 
     pop ax ; Restore preserved registers             
+    ret
+
+reveal_fog:
+    ; take xy value (dh=y, dl=x) and unset fog array 2 squares around it
+    ; sets cx
+
+    ; reveal line with start=dx, xy offset=ax, length=cx
+    mov ax,0x0001
+    mov cx,2
+    call reveal_fog_line
+
+    ret
+reveal_fog_line:
+    push dx
+    add dx,ax ; move dx by xy offset
+    push cx
+    mov cx,level_width
+    call xy2offset ; convert xy coord to 1d offset
+    ; clear fog at location
+    mov di,dx
+    add di,fog_addr
+    mov byte [di], 0
+
+    shl dx,1 ; level array has 2 byte offsets
+    mov bx,dx
+    add bx,level_addr
+
+    pop cx
+    pop dx
+    
+    cmp word [bx],wall_char
+    je end_reveal_fog_line
+    loop reveal_fog_line
+
+end_reveal_fog_line:
     ret
