@@ -31,4 +31,7 @@ done
 
 # assemble bin and create listing
 nasm -f bin -o $file_no_ext.com $file_no_ext.tmp -l $file_no_ext.lst
+
+# copy to .bin for ease of use with blinkenlights
+cp $file_no_ext.com $file_no_ext.bin
 rm $file_no_ext.tmp

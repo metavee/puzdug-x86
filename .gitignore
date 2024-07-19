@@ -163,3 +163,4 @@ cython_debug/
 
 *.com
 *.lst
+*.bin
