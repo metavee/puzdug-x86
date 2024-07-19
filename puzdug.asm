@@ -3,12 +3,13 @@ org 0x0100; for dosbox
 
 section .bss
 
-player_pos: resb 2
-level_addr resb 800
-
 level_width: equ 25
 level_height: equ 16
-level_size: equ 400         ; level_width * level_height
+level_size: equ level_width*level_height         ; level_width * level_height
+
+player_pos: resb 2
+level_addr resb level_size*2
+fog_addr resb level_size
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
@@ -44,12 +45,15 @@ start:
 init_level:
     ; Set up level array
     mov bx, level_addr
+    mov di, fog_addr
     mov cx,level_size
-    xor dx,dx
 init_level_loop:
     ; empty char by default
     mov word [bx], empty_char
-    add bx,2
+    mov byte [di], 1
+
+    add bx, 2
+    add di, 1
     loop init_level_loop
 init_wall1:
     mov bx, (level_addr + wall1_start_index)
@@ -67,11 +71,20 @@ render_level:
     xor dx,dx
 
     mov bx,level_addr
+    mov si,fog_addr
 render_level_loop:
     ; store everywhere on screen
+    mov al, [si]
+    cmp al, 1
+    jne render_no_fog
+    mov ax, fog_char
+    jmp render_char
+render_no_fog:
     mov ax, [bx]
+render_char:
     stosw
     add bx,2
+    add si,1
 
     ; newline logic
     inc dx
