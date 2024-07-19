@@ -1,10 +1,9 @@
 org 0x0100
 
-; TODO: should I just use 2 bytes for both of x and y? easy to get confused with single bytes
-player_x: equ 0x0200      ; 2 bytes for player position
-player_y: equ 0x0201
+section .bss
 
-level_addr: equ 0x0220 ; 800 bytes for level
+player_pos: resb 2
+level_addr resb 800
 
 level_width: equ 25
 level_height: equ 16
@@ -25,6 +24,8 @@ wall1_start_index: equ 2 * (2*level_width + 12)
 wall1_length: equ 12
 wall1_step: equ 2*level_width
 
+section .text
+
 start:
     mov ax,0x0002 ; set video mode to color text
     int 0x10 ; call interrupt to set video mode
@@ -36,8 +37,8 @@ start:
     mov es,ax
 
     ; Set player coordinate
-    mov byte [player_x],5
-    mov byte [player_y],7
+    mov byte [player_pos],5
+    mov byte [player_pos+1],7
 
 init_level:
     ; Set up level array
@@ -82,10 +83,10 @@ continue_level_loop:
     loop render_level_loop          ; Decrement CX, if CX != 0, loop back
 
 draw_player:
-    movzx ax, byte [player_y] ; Zero-extend player_y to ax
+    movzx ax, byte [player_pos+1] ; Zero-extend player_y to ax
     mov dl,row_width*2
     mul dl
-    movzx dx, byte [player_x] ; Zero-extend player_x to dx
+    movzx dx, byte [player_pos] ; Zero-extend player_x to dx
     add ax, dx
     add ax, dx
     mov di,ax
@@ -95,9 +96,9 @@ draw_player:
 
 get_input:
     ; dh/dl start as current position
-    mov dx,[player_x]
-    ; mov dh,[player_x]
-    ; mov dl,[player_y]
+    mov dx,[player_pos]
+    ; mov dh,[player_pos]
+    ; mov dl,[player_pos+1]
 
     ; press any key to exit
     call read_keyboard
@@ -157,7 +158,7 @@ can_move:
     je hit_wall
 
     ; passed checks - update position
-    mov [player_x],dx
+    mov [player_pos],dx
     jmp render_level
 
 hit_wall:
