@@ -156,23 +156,15 @@ get_input:
 
 go_up:
     dec dh
-    cmp dh, 0
-    js hit_wall
     jmp can_move
 go_down:
     inc dh
-    cmp dh, level_height
-    jae hit_wall
     jmp can_move
 go_left:
     dec dl
-    cmp dl, 0
-    js hit_wall
     jmp can_move
 go_right:
     inc dl
-    cmp dl, level_width
-    jae hit_wall
 can_move:
     ; check for wall - coordinate conversion
     push dx
