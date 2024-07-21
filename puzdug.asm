@@ -24,7 +24,8 @@ player_char: equ 0x0f40 ; black bg, white fg, @
 ; hardcoded single wall in array index
 wall1_start_index: equ 2 * (2*level_width + 12)
 wall1_length: equ 12
-wall1_step: equ 2*level_width
+vertical_step: equ 2*level_width
+horizontal_step: equ 2
 
 section .text
 
@@ -55,13 +56,30 @@ init_level_loop:
     add bx, 2
     add di, 1
     loop init_level_loop
+
+init_boundary_walls:
+    mov ax, horizontal_step
+    mov bx, level_addr
+    mov cx, level_width
+    call fill_wall
+
+    mov bx, (level_addr + 2  * (level_height - 1) * level_width)
+    mov cx, level_width
+    call fill_wall
+
+    mov ax, vertical_step
+    mov bx, level_addr
+    mov cx, level_height
+    call fill_wall
+
+    mov bx, (level_addr + 2 * (level_width - 1))
+    mov cx, level_height
+    call fill_wall
+
 init_wall1:
     mov bx, (level_addr + wall1_start_index)
     mov cx, wall1_length
-init_wall1_loop:
-    mov word [bx], wall_char
-    add bx, wall1_step
-    loop init_wall1_loop
+    call fill_wall
 
     ; initial fog clear
     mov dx, [player_pos]
@@ -302,4 +320,13 @@ reveal_fog_line_loop:
 
 end_reveal_fog_line:
     pop dx
+    ret
+
+fill_wall:
+    ; ax has stride
+    ; bx has wall start index
+    ; cx has length
+    mov word [bx], wall_char
+    add bx, ax
+    loop fill_wall
     ret
