@@ -3,8 +3,8 @@ org 0x0100; for dosbox
 
 section .bss
 
-level_width: equ 25
-level_height: equ 16
+level_width: equ 27
+level_height: equ 18
 level_size: equ level_width*level_height         ; level_width * level_height
 
 player_pos: resb 2
@@ -22,7 +22,7 @@ fog_char: equ 0x07f7 ; black bg, grey fg, almost equal ≈
 player_char: equ 0x0f40 ; black bg, white fg, @
 
 ; hardcoded single wall in array index
-wall1_start_index: equ 2 * (2*level_width + 12)
+wall1_start_index: equ 2 * (3*level_width + 13)
 wall1_length: equ 12
 vertical_step: equ 2*level_width
 horizontal_step: equ 2
