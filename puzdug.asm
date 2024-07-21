@@ -296,8 +296,8 @@ reveal_fog_line_loop:
     add dh,ah
     add dl,al
     
-    ; cmp word [bx],wall_char
-    ; je end_reveal_fog_line
+    cmp word [bx],wall_char
+    je end_reveal_fog_line
     loop reveal_fog_line_loop
 
 end_reveal_fog_line:
