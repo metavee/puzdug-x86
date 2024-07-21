@@ -227,15 +227,56 @@ reveal_fog:
     ; take xy value (dh=y, dl=x) and unset fog array 2 squares around it
     ; sets cx
 
+
     ; reveal line with start=dx, xy offset=ax, length=cx
+    ; right
     mov ax,0x0001
     mov cx,2
+    call reveal_fog_line
+
+    ; down
+    mov ax,0x0100
+    mov cx,2
+    call reveal_fog_line
+
+    ; left
+    mov ax,0x00ff
+    mov cx,2
+    call reveal_fog_line
+
+    ; up
+    mov ax,0xff00
+    mov cx,2
+    call reveal_fog_line
+
+    ; lower-right
+    mov ax,0x0101
+    mov cx,1
+    call reveal_fog_line
+
+    ; lower-left
+    mov ax,0x01ff
+    mov cx,1
+    call reveal_fog_line
+
+    ; upper-left
+    mov ax,0xffff
+    mov cx,1
+    call reveal_fog_line
+
+    ; upper-right
+    mov ax,0xff01
+    mov cx,1
     call reveal_fog_line
 
     ret
 reveal_fog_line:
     push dx
-    add dx,ax ; move dx by xy offset
+reveal_fog_line_loop:
+    push dx
+    ; add offset. do 8-bit adds so that we can add negative numbers
+    add dh,ah
+    add dl,al
     push cx
     mov cx,level_width
     call xy2offset ; convert xy coord to 1d offset
@@ -244,16 +285,21 @@ reveal_fog_line:
     add di,fog_addr
     mov byte [di], 0
 
+    ; check contents of level at location
     shl dx,1 ; level array has 2 byte offsets
     mov bx,dx
     add bx,level_addr
 
     pop cx
     pop dx
+    ; re-add offset so we have it for the next loop
+    add dh,ah
+    add dl,al
     
-    cmp word [bx],wall_char
-    je end_reveal_fog_line
-    loop reveal_fog_line
+    ; cmp word [bx],wall_char
+    ; je end_reveal_fog_line
+    loop reveal_fog_line_loop
 
 end_reveal_fog_line:
+    pop dx
     ret
