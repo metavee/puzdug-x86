@@ -20,6 +20,7 @@ wall_char: equ 0x04b2 ; black bg, red fg, heavy texture ▓
 empty_char: equ 0x072e ; black bg, grey fg, .
 fog_char: equ 0x07f7 ; black bg, grey fg, almost equal ≈
 player_char: equ 0x0f40 ; black bg, white fg, @
+basic_enemy_char: equ 0x03EA ; black bg, aqua fg, omega
 
 ; hardcoded single wall in array index
 wall1_start_index: equ 2 * (3*level_width + 13)
@@ -80,6 +81,10 @@ init_wall1:
     mov bx, (level_addr + wall1_start_index)
     mov cx, wall1_length
     call fill_wall
+
+spawn_enemy:
+    mov bx, (level_addr + 2 * (3 * level_width + 3))
+    mov word [bx], basic_enemy_char
 
     ; initial fog clear
     mov dx, [player_pos]
