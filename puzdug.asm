@@ -183,6 +183,9 @@ can_move:
     cmp word [bx],wall_char
     je hit_wall
 
+    cmp word [bx],basic_enemy_char
+    je hit_basic_enemy
+
     ; passed checks - update position
     mov [player_pos],dx
     call reveal_fog
@@ -190,6 +193,10 @@ can_move:
 
 hit_wall:
     ; TODO: set status flag
+    jmp render_level
+
+hit_basic_enemy:
+    ; TODO: run one exchange of combat
     jmp render_level
 
 do_exit:
