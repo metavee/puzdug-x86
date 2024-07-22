@@ -8,8 +8,9 @@ level_height: equ 18
 level_size: equ level_width*level_height         ; level_width * level_height
 
 player_pos: resb 2
-level_addr resb level_size*2
-fog_addr resb level_size
+level_addr: resb level_size*2
+fog_addr: resb level_size
+player_health: equ (string + 15)
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
@@ -43,6 +44,7 @@ start:
     ; Set player coordinate
     mov byte [player_pos],5
     mov byte [player_pos+1],7
+    mov byte [player_health],15
 
 init_level:
     ; Set up level array
@@ -91,6 +93,9 @@ spawn_enemy:
     call reveal_fog
 
 render_level:
+    cmp byte [player_health], 0
+    je do_exit
+
     cld ; clear direction flag - di will increment
     xor di,di ; set di to 0
 
@@ -131,6 +136,15 @@ draw_player:
     mov di,dx
 
     mov ax, player_char
+    stosw
+
+draw_health:
+    mov bx,string
+    mov dl,level_width+5
+    mov dh,0x05
+    call draw_text
+    mov di, (row_width * 5 + level_width + 3) * 2
+    mov ax, basic_enemy_char
     stosw
 
 get_input:
@@ -196,6 +210,7 @@ hit_wall:
     jmp render_level
 
 hit_basic_enemy:
+    dec byte [player_health]
     ; TODO: run one exchange of combat
     jmp render_level
 
@@ -334,3 +349,26 @@ fill_wall:
     add bx, ax
     loop fill_wall
     ret
+
+; ax is clobbered
+; bx is start of null-terminated string (clobbered)
+; dx is draw x/y (clobbered)
+draw_text:
+    mov cx, row_width
+    call xy2offset
+    shl dx,1
+    mov di,dx
+    mov ah, 0x0f ; white text black bg
+draw_text_loop:
+    mov al,[bx]
+    test al,al
+    je draw_text_end
+    stosw
+    inc bx
+    jmp draw_text_loop
+draw_text_end:
+    ret
+
+section .data
+string:
+    db "Player health:   ", 0
