@@ -29,6 +29,12 @@ wall1_length: equ 12
 vertical_step: equ 2*level_width
 horizontal_step: equ 2
 
+; https://en.wikipedia.org/wiki/Linear_congruential_generator
+rng_state: resb 2
+rng_a: equ 4937; (some multiple of 4) + 1. large but smaller than m
+rng_m: equ 8191 ; prime
+rng_c: equ 31 ; small prime
+
 section .text
 
 start:
@@ -40,6 +46,11 @@ start:
     mov ds,ax
     mov ax, video_segment
     mov es,ax
+    
+    ; set RNG state
+	mov	ah, 0x00
+	int	0x1A		; get clock ticks since midnight - lower bits in dx
+	mov	[rng_state], dx
 
     ; Set player coordinate
     mov byte [player_pos],5
@@ -367,6 +378,34 @@ draw_text_loop:
     inc bx
     jmp draw_text_loop
 draw_text_end:
+    ret
+
+rng_lcg:
+    ; Generate a random value lying in [0, bx) and store in dx
+    push ax
+    push bx
+    mov ax, [rng_state]
+    mov bx, rng_a
+    mul bx ; dx:ax = ax * bx
+
+    add ax, rng_c
+    adc dx, 0 ; add carry bit to dx
+
+    mov bx, rng_m
+    div bx ; ax = (dx:ax) / bx, dx = (dx:ax) % bx
+
+    ; remainder becomes new state
+    mov [rng_state], dx
+
+    ; Truncate DX to lie between 0 and upper_bound-1
+    mov ax, dx
+
+    xor dx,dx ; zero out dx so that we are just dividing ax and not (dx:ax)
+
+    pop bx
+    div bx  ; AX = (AX) / BX, DX = (AX) % BX
+
+    pop ax
     ret
 
 section .data
