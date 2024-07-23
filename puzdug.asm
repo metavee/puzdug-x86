@@ -127,9 +127,6 @@ init_entities:
     call reveal_fog
 
 render_level:
-    cmp byte [player_addr + current_hp_offset], 0
-    je do_exit
-
     cld ; clear direction flag - di will increment
     xor di,di ; set di to 0
 
@@ -241,9 +238,9 @@ can_move:
     cmp word [bx],wall_char
     je hit_wall
 
-    ; TODO: reimplement combat
-    ; cmp word [bx],basic_enemy_char
-    ; je hit_basic_enemy
+    ; check for enemy
+    cmp byte [bx], enemy_sentinel
+    je hit_enemy
 
     ; passed checks - update position
     mov [player_pos],dx
@@ -254,9 +251,27 @@ hit_wall:
     ; TODO: set status flag
     jmp render_level
 
-hit_basic_enemy:
+hit_enemy:
+    ; get enemy health
+    push bx ; save level data pointer
+    mov bx, [bx]
+    xor bh,bh
+    add bx, entity_arr + current_hp_offset
+
+    ; dec enemy health and check
+    dec byte [bx]
+    cmp byte [bx], 0
+    pop bx
+    jne hit_basic_enemy_player_hit
+hit_basic_enemy_enemy_died:
+    mov word [bx], empty_char
+hit_basic_enemy_player_hit:
+    ; dec player health and check
     dec byte [player_addr + current_hp_offset]
-    ; TODO: run one exchange of combat
+    cmp byte [player_addr + current_hp_offset], 0
+
+    je do_exit
+
     jmp render_level
 
 do_exit:
