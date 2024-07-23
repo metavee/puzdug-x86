@@ -21,7 +21,7 @@ type_offset: equ (max_hp_offset+1)
 max_entity_offset: equ (type_offset+1)
 entity_arr: resb (max_entity_offset * 10)
 
-enemy_sentinel: equ 1
+enemy_sentinel: equ 0x03
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
@@ -32,7 +32,6 @@ wall_char: equ 0x04b2 ; black bg, red fg, heavy texture ▓
 empty_char: equ 0x072e ; black bg, grey fg, .
 fog_char: equ 0x07f7 ; black bg, grey fg, almost equal ≈
 player_char: equ 0x0f40 ; black bg, white fg, @
-basic_enemy_char: equ 0x03EA ; black bg, aqua fg, omega
 
 ; hardcoded single wall in array index
 wall1_start_index: equ 2 * (3*level_width + 13)
@@ -71,7 +70,7 @@ init_level:
 init_level_loop:
     ; empty char by default
     mov word [bx], empty_char
-    mov byte [di], 1
+    mov byte [di], 0 ; TODO: re-enable fog
 
     add bx, 2
     add di, 1
@@ -123,10 +122,6 @@ init_entities:
     mov byte [enemy1_addr + max_hp_offset], 3
     mov byte [enemy1_addr + type_offset], 0xEA
 
-spawn_enemy:
-    mov bx, (level_addr + 2 * (3 * level_width + 3))
-    mov word [bx], basic_enemy_char
-
     ; initial fog clear
     mov dx, [player_pos]
     call reveal_fog
@@ -152,6 +147,17 @@ render_level_loop:
     jmp render_char
 render_no_fog:
     mov ax, [bx]
+    cmp ah, enemy_sentinel
+    jne render_char
+render_enemy_type:
+    ; if entity, substitute in entity type
+    ; al is now the offset in the entity array
+    push bx
+    movzx bx, al
+    add bx, entity_arr + type_offset
+    mov al, [bx]
+    pop bx
+    ; (enemy_sentinel):(enemy type) is now in ax
 render_char:
     stosw
     add bx,2
@@ -184,9 +190,6 @@ draw_health:
     mov dl,level_width+5
     mov dh,0x05
     call draw_text
-    mov di, (row_width * 5 + level_width + 3) * 2
-    mov ax, basic_enemy_char
-    stosw
 
 get_input:
     ; dh/dl start as current position
@@ -238,8 +241,9 @@ can_move:
     cmp word [bx],wall_char
     je hit_wall
 
-    cmp word [bx],basic_enemy_char
-    je hit_basic_enemy
+    ; TODO: reimplement combat
+    ; cmp word [bx],basic_enemy_char
+    ; je hit_basic_enemy
 
     ; passed checks - update position
     mov [player_pos],dx
