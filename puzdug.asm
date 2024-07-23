@@ -13,11 +13,15 @@ fog_addr: resb level_size
 player_addr: equ entity_arr
 player_health_str_addr: equ (string + 15)
 
+enemy1_addr: equ entity_arr + max_entity_offset
+
 current_hp_offset: equ 0
 max_hp_offset: equ (current_hp_offset+1)
 type_offset: equ (max_hp_offset+1)
 max_entity_offset: equ (type_offset+1)
 entity_arr: resb (max_entity_offset * 10)
+
+enemy_sentinel: equ 1
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
@@ -59,14 +63,6 @@ start:
 	int	0x1A		; get clock ticks since midnight - lower bits in dx
 	mov	[rng_state], dx
 
-init_entities:
-    ; Set player coordinate
-    call random_empty_coord
-    mov [player_pos],dx
-    mov byte [player_addr + current_hp_offset],15
-    mov byte [player_addr + max_hp_offset],15
-    mov byte [entity_arr + type_offset],0
-
 init_level:
     ; Set up level array
     mov bx, level_addr
@@ -104,6 +100,28 @@ init_wall1:
     mov bx, (level_addr + wall1_start_index)
     mov cx, wall1_length
     call fill_wall
+
+init_entities:
+    ; Set player coordinate
+    call random_empty_coord
+    mov [player_pos],dx
+    mov byte [player_addr + current_hp_offset],15
+    mov byte [player_addr + max_hp_offset],15
+    mov byte [player_addr + type_offset],'@'
+
+    ; make enemy1 coordinate and insert into level
+    call random_empty_coord
+    mov cx, level_width
+    call xy2offset
+    shl dx, 1
+    mov bx, level_addr
+    add bx, dx
+    mov word [bx], (enemy_sentinel * 256) + max_entity_offset
+    
+    ; init enemy1 health
+    mov byte [enemy1_addr + current_hp_offset], 3
+    mov byte [enemy1_addr + max_hp_offset], 3
+    mov byte [enemy1_addr + type_offset], 0xEA
 
 spawn_enemy:
     mov bx, (level_addr + 2 * (3 * level_width + 3))
