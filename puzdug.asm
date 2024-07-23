@@ -11,7 +11,7 @@ player_pos: resb 2
 level_addr: resb level_size*2
 fog_addr: resb level_size
 player_addr: equ entity_arr
-player_health_str_addr: equ (string + 15)
+player_health_str_addr: equ (string + 4)
 
 num_start_enemies: equ 8
 
@@ -109,36 +109,36 @@ init_entities:
     mov byte [player_addr + type_offset],'@'
 
     mov cx,num_start_enemies
-init_enemies:
-    ; make enemy1 coordinate and insert into level
+init_enemies_loop:
+    ; make enemy coordinates
     call random_empty_coord
 
     push cx
     mov cx, level_width
     call xy2offset
     pop cx
+
+    ; get level offset
     shl dx, 1
     mov bx, level_addr
     add bx, dx
 
-    ; calculate enemy's offset - max_entity_offset*cx + entity_arr
+    ; calculate enemy's array offset - max_entity_offset*cx + entity_arr
     mov ax, max_entity_offset
     mul cx
 
-    ;mov byte [bx], enemy_sentinel
-    ;mov byte [bx + 1], al
-    push ax
+    ; store enemy sentinel and offset in level
     mov word [bx], ax
     add word [bx], (enemy_sentinel * 256)
     
-    ; init enemy1 health
+    ; store enemy attributes in array
     mov di, ax
     add di, entity_arr
     mov byte [di + current_hp_offset], 3
     mov byte [di + max_hp_offset], 3
     mov byte [di + type_offset], 0xEA
 
-    loop init_enemies
+    loop init_enemies_loop
 init_fog_clear:
     ; initial fog clear
     mov dx, [player_pos]
@@ -511,4 +511,4 @@ random_empty_coord:
 
 section .data
 string:
-    db "Player health:   ", 0
+    db "HP:   ", 0
