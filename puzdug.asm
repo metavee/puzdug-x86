@@ -53,8 +53,8 @@ start:
 	mov	[rng_state], dx
 
     ; Set player coordinate
-    mov byte [player_pos],5
-    mov byte [player_pos+1],7
+    call random_empty_coord
+    mov [player_pos],dx
     mov byte [player_health],15
 
 init_level:
@@ -271,6 +271,25 @@ xy2offset:
     pop ax ; Restore preserved registers             
     ret
 
+offset2xy:
+    ; DX contains the offset -> store as dh=y, dl=x
+    push ax
+    push bx
+
+    mov ax, dx
+    xor dx, dx
+    mov bx, level_width
+    div bx
+
+    ; Remainder (x) is already in dx, and small enough to fit in dl
+    ; move quotient (y) to dh
+    mov dh, al
+
+    pop bx
+    pop ax
+
+    ret
+
 reveal_fog:
     ; take xy value (dh=y, dl=x) and unset fog array 2 squares around it
     ; sets cx
@@ -406,6 +425,22 @@ rng_lcg:
     div bx  ; AX = (AX) / BX, DX = (AX) % BX
 
     pop ax
+    ret
+
+random_empty_coord:
+    mov bx, level_size
+    call rng_lcg
+    mov bx, dx
+
+    ; pointer into level - 2 byte offset + level_addr
+    shl bx,1
+    add bx,level_addr
+
+    cmp word [bx], empty_char
+    jne random_empty_coord ; try again
+
+    call offset2xy
+
     ret
 
 section .data
