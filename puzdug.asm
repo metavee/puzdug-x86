@@ -10,7 +10,15 @@ level_size: equ level_width*level_height         ; level_width * level_height
 player_pos: resb 2
 level_addr: resb level_size*2
 fog_addr: resb level_size
-player_health: equ (string + 15)
+player_health_addr: equ (entity_arr + current_hp_offset)
+player_max_health_addr: equ (entity_arr + max_hp_offset)
+player_health_str_addr: equ (string + 15)
+
+current_hp_offset: equ 0
+max_hp_offset: equ (current_hp_offset+1)
+type_offset: equ (max_hp_offset+1)
+max_entity_offset: equ (type_offset+1)
+entity_arr: resb (max_entity_offset * 10)
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
@@ -55,7 +63,8 @@ start:
     ; Set player coordinate
     call random_empty_coord
     mov [player_pos],dx
-    mov byte [player_health],15
+    mov byte [player_health_addr],15
+    mov byte [player_max_health_addr],15
 
 init_level:
     ; Set up level array
@@ -104,7 +113,7 @@ spawn_enemy:
     call reveal_fog
 
 render_level:
-    cmp byte [player_health], 0
+    cmp byte [player_health_addr], 0
     je do_exit
 
     cld ; clear direction flag - di will increment
@@ -150,6 +159,8 @@ draw_player:
     stosw
 
 draw_health:
+    mov bx, [player_health_addr]
+    mov [player_health_str_addr], bx
     mov bx,string
     mov dl,level_width+5
     mov dh,0x05
@@ -221,7 +232,7 @@ hit_wall:
     jmp render_level
 
 hit_basic_enemy:
-    dec byte [player_health]
+    dec byte [player_health_addr]
     ; TODO: run one exchange of combat
     jmp render_level
 
