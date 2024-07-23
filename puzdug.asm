@@ -13,7 +13,7 @@ fog_addr: resb level_size
 player_addr: equ entity_arr
 player_health_str_addr: equ (string + 15)
 
-enemy1_addr: equ entity_arr + max_entity_offset
+num_start_enemies: equ 8
 
 current_hp_offset: equ 0
 max_hp_offset: equ (current_hp_offset+1)
@@ -108,24 +108,41 @@ init_entities:
     mov byte [player_addr + max_hp_offset],15
     mov byte [player_addr + type_offset],'@'
 
+    mov cx,num_start_enemies
+init_enemies:
     ; make enemy1 coordinate and insert into level
     call random_empty_coord
+
+    push cx
     mov cx, level_width
     call xy2offset
+    pop cx
     shl dx, 1
     mov bx, level_addr
     add bx, dx
-    mov word [bx], (enemy_sentinel * 256) + max_entity_offset
+
+    ; calculate enemy's offset - max_entity_offset*cx + entity_arr
+    mov ax, max_entity_offset
+    mul cx
+
+    ;mov byte [bx], enemy_sentinel
+    ;mov byte [bx + 1], al
+    push ax
+    mov word [bx], ax
+    add word [bx], (enemy_sentinel * 256)
     
     ; init enemy1 health
-    mov byte [enemy1_addr + current_hp_offset], 3
-    mov byte [enemy1_addr + max_hp_offset], 3
-    mov byte [enemy1_addr + type_offset], 0xEA
+    mov di, ax
+    add di, entity_arr
+    mov byte [di + current_hp_offset], 3
+    mov byte [di + max_hp_offset], 3
+    mov byte [di + type_offset], 0xEA
 
+    loop init_enemies
+init_fog_clear:
     ; initial fog clear
     mov dx, [player_pos]
     call reveal_fog
-
 render_level:
     cld ; clear direction flag - di will increment
     xor di,di ; set di to 0
@@ -239,7 +256,7 @@ can_move:
     je hit_wall
 
     ; check for enemy
-    cmp byte [bx], enemy_sentinel
+    cmp byte [bx + 1], enemy_sentinel
     je hit_enemy
 
     ; passed checks - update position
