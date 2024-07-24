@@ -118,6 +118,31 @@ init_tunnel:
     mov cx, (level_width - 6)
     call fill_wall
 
+init_random_walls:
+    ; have two fields of random "trees"
+    ; hardcode which Y, and xStart and xEnd
+    ; for i = 0; i < xEnd - xStart; i++ {
+    ;   if rand > threshold { placeTree() }
+    ; }
+
+    ; 23 wide, starting on x = 4
+
+    ; rng_lcg value stored in dx
+    mov bx, 0xFF
+    call rng_lcg
+    cmp dx, 0x80 ; if rand > threshold
+    jl no_wall
+
+    ; { placeTree() }
+    mov bx, level_addr + 2 * (2*level_width + 4) 
+    mov cx, 1
+    mov ax, 2
+    call fill_wall
+
+no_wall:
+
+
+
 init_entities:
     ; Set player coordinate
     call random_empty_coord
