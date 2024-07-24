@@ -32,6 +32,7 @@ wall_char: equ 0x04b2 ; black bg, red fg, heavy texture ▓
 empty_char: equ 0x072e ; black bg, grey fg, .
 fog_char: equ 0x07f7 ; black bg, grey fg, almost equal ≈
 player_char: equ 0x0f40 ; black bg, white fg, @
+house_char: equ 0x0d7f ; black bg, pink fg, house symbol
 
 ; hardcoded single wall in array index
 wall1_start_index: equ 2 * (3*level_width + 13)
@@ -119,29 +120,11 @@ init_tunnel:
     call fill_wall
 
 init_random_walls:
-    ; have two fields of random "trees"
-    ; hardcode which Y, and xStart and xEnd
-    ; for i = 0; i < xEnd - xStart; i++ {
-    ;   if rand > threshold { placeTree() }
-    ; }
-
-    ; 23 wide, starting on x = 4
-
-    ; rng_lcg value stored in dx
-    mov bx, 0xFF
-    call rng_lcg
-    cmp dx, 0x80 ; if rand > threshold
-    jl no_wall
-
-    ; { placeTree() }
+    ; paint random rows of houses or trees or somethings
     mov bx, level_addr + 2 * (2*level_width + 4) 
-    mov cx, 1
-    mov ax, 2
-    call fill_wall
-
-no_wall:
-
-
+    mov cx, level_width - 6
+    mov ax, horizontal_step
+    call fill_house
 
 init_entities:
     ; Set player coordinate
@@ -510,6 +493,23 @@ fill_wall:
     mov word [bx], wall_char
     add bx, ax
     loop fill_wall
+    ret
+
+fill_house:
+    ; ax has stride
+    ; bx has wall start index
+    ; cx has length
+    push bx
+    mov bx, 0x03
+    call rng_lcg
+    cmp dx, 0
+    pop bx
+    jne skip
+    mov word [bx], house_char
+skip:
+    add bx, ax
+
+    loop fill_house
     ret
 
 ; ax is clobbered
