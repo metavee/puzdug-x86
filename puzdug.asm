@@ -100,8 +100,14 @@ init_boundary_walls:
 ;     mov cx, wall1_length
 ;     call fill_wall
 
+; %macro pre_xy2offset 2
+;     2*(level_width*%2 + %1)
+; %endmacro
+
+#define pre_xy2offset(a, b) 2*(level_width*b + a)
+
 init_tunnel:
-    mov bx, (level_addr + 2 * (2*level_width + 2))
+    mov bx, pre_xy2offset(2, 2)
     mov cx, 8
     call fill_wall
 

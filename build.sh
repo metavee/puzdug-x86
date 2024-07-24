@@ -29,9 +29,11 @@ while [ -n "$2" ]; do
   shift
 done
 
+clang -E - -Wno-everything < $file_no_ext.tmp | sed 's/#.*//g' > $file_no_ext.tmp2
+
 # assemble bin and create listing
-nasm -f bin -o $file_no_ext.com $file_no_ext.tmp -l $file_no_ext.lst
+nasm -f bin -o $file_no_ext.com $file_no_ext.tmp2 -l $file_no_ext.lst
 
 # copy to .bin for ease of use with blinkenlights
 cp $file_no_ext.com $file_no_ext.bin
-rm $file_no_ext.tmp
+rm $file_no_ext.tmp*
