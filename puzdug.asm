@@ -19,7 +19,7 @@ current_hp_offset: equ 0
 max_hp_offset: equ (current_hp_offset+1)
 type_offset: equ (max_hp_offset+1)
 max_entity_offset: equ (type_offset+1)
-entity_arr: resb (max_entity_offset * 10)
+entity_arr: resb (max_entity_offset * (num_start_enemies + 1))
 
 enemy_sentinel: equ 0x03
 
