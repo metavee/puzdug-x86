@@ -105,6 +105,10 @@ init_tunnel:
     mov cx, 8
     call fill_wall
 
+    mov bx, (level_addr + 2 * (8*level_width + (level_width-3)))
+    mov cx, 8
+    call fill_wall
+
     mov ax, horizontal_step
     mov bx, (level_addr + 2 * (8*level_width + 4))
     mov cx, (level_width - 6)
