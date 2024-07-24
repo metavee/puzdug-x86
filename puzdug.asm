@@ -70,7 +70,7 @@ init_level:
 init_level_loop:
     ; empty char by default
     mov word [bx], empty_char
-    mov byte [di], 0 ; TODO: re-enable fog
+    mov byte [di], 1 ; TODO: re-enable fog
 
     add bx, 2
     add di, 1
@@ -358,8 +358,10 @@ offset2xy:
 
 reveal_fog:
     ; take xy value (dh=y, dl=x) and unset fog array 2 squares around it
-    ; sets cx
+    ; clobbers most registers
 
+    ; use as counter for number of fogs revealed
+    xor bh,bh
 
     ; reveal line with start=dx, xy offset=ax, length=cx
     ; right
@@ -402,6 +404,15 @@ reveal_fog:
     mov cx,1
     call reveal_fog_line
 
+fog_heal:
+    ; heal just player
+    ; TODO: heal all entities
+    add byte [entity_arr + current_hp_offset], bh
+    mov bx, [entity_arr + current_hp_offset]
+    cmp bh, bl
+    jg heal_ret
+    mov byte [entity_arr + current_hp_offset], bh
+heal_ret:
     ret
 reveal_fog_line:
     push dx
@@ -414,14 +425,15 @@ reveal_fog_line_loop:
     mov cx,level_width
     call xy2offset ; convert xy coord to 1d offset
     ; clear fog at location
-    mov di,dx
-    add di,fog_addr
-    mov byte [di], 0
+    mov si,dx
+    add si,fog_addr
+    add bh, [si]
+    mov byte [si], 0
 
     ; check contents of level at location
     shl dx,1 ; level array has 2 byte offsets
-    mov bx,dx
-    add bx,level_addr
+    mov di,dx
+    add di,level_addr
 
     pop cx
     pop dx
@@ -429,7 +441,7 @@ reveal_fog_line_loop:
     add dh,ah
     add dl,al
     
-    cmp word [bx],wall_char
+    cmp word [di],wall_char
     je end_reveal_fog_line
     loop reveal_fog_line_loop
 
