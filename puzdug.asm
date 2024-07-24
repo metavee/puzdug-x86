@@ -405,13 +405,24 @@ reveal_fog:
     call reveal_fog_line
 
 fog_heal:
-    ; heal just player
-    ; TODO: heal all entities
-    add byte [entity_arr + current_hp_offset], bh
-    mov bx, [entity_arr + current_hp_offset]
+    ; heal all entities
+    mov cx, num_start_enemies+1
+    mov di, entity_arr + current_hp_offset
+fog_heal_loop:
+    ; increase current hp by amount of fog revealed
+    add byte [di], bh
+    push bx
+
+    ; set up comparison of current vs max hp
+    mov bx, [di]
     cmp bh, bl
-    jg heal_ret
-    mov byte [entity_arr + current_hp_offset], bh
+    jg heal_next
+    mov byte [di], bh ; reset current hp to max hp
+heal_next:
+    pop bx
+    add di, max_entity_offset
+
+    loop fog_heal_loop
 heal_ret:
     ret
 reveal_fog_line:
