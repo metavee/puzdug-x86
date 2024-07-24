@@ -70,7 +70,7 @@ init_level:
 init_level_loop:
     ; empty char by default
     mov word [bx], empty_char
-    mov byte [di], 1 ; TODO: re-enable fog
+    mov byte [di], 0 ; TODO: re-enable fog
 
     add bx, 2
     add di, 1
@@ -95,9 +95,23 @@ init_boundary_walls:
     mov cx, level_height
     call fill_wall
 
-init_wall1:
-    mov bx, (level_addr + wall1_start_index)
-    mov cx, wall1_length
+; init_wall1:
+;     mov bx, (level_addr + wall1_start_index)
+;     mov cx, wall1_length
+;     call fill_wall
+
+init_tunnel:
+    mov bx, (level_addr + 2 * (2*level_width + 2))
+    mov cx, 8
+    call fill_wall
+
+    mov ax, horizontal_step
+    mov bx, (level_addr + 2 * (8*level_width + 4))
+    mov cx, (level_width - 6)
+    call fill_wall
+
+    mov bx, (level_addr + 2 * (10*level_width + 2))
+    mov cx, (level_width - 6)
     call fill_wall
 
 init_entities:
