@@ -13,9 +13,10 @@ player_pos: resb 2
 level_addr: resb level_size*2
 fog_addr: resb level_size
 player_addr: equ entity_arr
-player_health_str_addr: equ (string + 4)
+player_health_str_addr: equ (hp_str + 4)
+enemy_str_addr: equ (enemy_str + 5)
 
-num_start_enemies: equ 8
+num_start_enemies: equ 9
 
 current_hp_offset: equ 0
 max_hp_offset: equ (current_hp_offset+1)
@@ -254,9 +255,16 @@ draw_player:
 draw_health:
     mov bx, [player_addr + current_hp_offset]
     mov [player_health_str_addr], bx
-    mov bx,string
+    mov bx,hp_str
     mov dl,level_width+5
-    mov dh,0x05
+    mov dh,5
+    call draw_text
+
+draw_enemies_left:
+    ; mov byte [enemy_str_addr], '5'
+    mov bx, enemy_str
+    mov dl,level_width+5
+    mov dh,7
     call draw_text
 
 get_input:
@@ -339,15 +347,21 @@ hit_enemy:
     jne hit_basic_enemy_player_hit
 hit_basic_enemy_enemy_died:
     mov word [bx], empty_char
+    mov bx, enemy_str_addr
+    dec byte [bx]
+    cmp byte [bx], '0'
+    je do_win
 hit_basic_enemy_player_hit:
     ; dec player health and check
     dec byte [player_addr + current_hp_offset]
     cmp byte [player_addr + current_hp_offset], 0
 
-    je do_exit
+    je do_lose
 
     jmp render_level
 
+do_win:
+do_lose:
 do_exit:
     int 0x20                ; Terminate the program
 
@@ -552,7 +566,7 @@ skip:
     ret
 
 ; ax is clobbered
-; bx is start of null-terminated string (clobbered)
+; bx is start of null-terminated hp_str (clobbered)
 ; dx is draw x/y (clobbered)
 draw_text:
     mov cx, row_width
@@ -623,5 +637,8 @@ found_empty_coord:
     ret
 
 section .data
-string:
+hp_str:
     db "HP:   ", 0
+
+enemy_str:
+    db "MON: 9", 0
