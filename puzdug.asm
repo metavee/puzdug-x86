@@ -31,6 +31,8 @@ entity_arr: resb (max_entity_offset * (num_start_enemies + 1))
 
 enemy_sentinel: equ 0x03
 
+start_enemy_type: equ 0xe3
+
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
 screen_height: equ 25
@@ -173,6 +175,7 @@ init_entities:
     mov byte [player_addr + type_offset],'@'
 
     mov cx,num_start_enemies
+    mov ah, start_enemy_type
 init_enemies_loop:
     ; make enemy coordinates
     call random_empty_coord
@@ -188,6 +191,7 @@ init_enemies_loop:
     add bx, dx
 
     ; calculate enemy's array offset - max_entity_offset*cx + entity_arr
+    push ax
     mov ax, max_entity_offset
     mul cx
 
@@ -200,7 +204,10 @@ init_enemies_loop:
     add di, entity_arr
     mov byte [di + current_hp_offset], enemy_start_hp
     mov byte [di + max_hp_offset], enemy_start_hp
-    mov byte [di + type_offset], 0xEA
+
+    pop ax
+    mov byte [di + type_offset], ah
+    inc ah
 
     loop init_enemies_loop
 init_fog_clear:
