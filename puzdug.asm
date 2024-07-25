@@ -516,10 +516,10 @@ fog_heal:
     ; heal all entities
     mov cx, num_start_enemies + 1
     mov di, entity_arr + current_hp_offset
-fog_heal_loop:
+
     ; juggle amount of fog revealed
     mov ah, bh
-
+fog_heal_loop:
     ; load current and max health into bx
     mov bx, [di]
     
