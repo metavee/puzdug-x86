@@ -33,6 +33,7 @@ empty_char: equ 0x072e ; black bg, grey fg, .
 fog_char: equ 0x07f7 ; black bg, grey fg, almost equal ≈
 player_char: equ 0x0f40 ; black bg, white fg, @
 house_char: equ 0x0d7f ; black bg, pink fg, house symbol
+tree_char: equ 0x0206 ; black bg, green fg, spade symbol
 
 ; hardcoded single wall in array index
 wall1_start_index: equ 2 * (3*level_width + 13)
@@ -71,7 +72,7 @@ init_level:
 init_level_loop:
     ; empty char by default
     mov word [bx], empty_char
-    mov byte [di], 0 ; TODO: re-enable fog
+    mov byte [di], 0 ; fog enable 1 / disable with 0
 
     add bx, 2
     add di, 1
@@ -96,11 +97,6 @@ init_boundary_walls:
     mov cx, level_height
     call fill_wall
 
-; init_wall1:
-;     mov bx, (level_addr + wall1_start_index)
-;     mov cx, wall1_length
-;     call fill_wall
-
 init_tunnel:
     mov bx, (level_addr + 2 * (2*level_width + 2))
     mov cx, 8
@@ -119,11 +115,38 @@ init_tunnel:
     mov cx, (level_width - 6)
     call fill_wall
 
-init_random_walls:
+init_random_houses:
     ; paint random rows of houses or trees or somethings
-    mov bx, level_addr + 2 * (2*level_width + 4) 
+    ; top part
+    mov ax, 6
+    mov dx, house_char
+    mov bx, level_addr + 2 * (2*level_width + 4)
     mov cx, level_width - 6
-    mov ax, horizontal_step
+    call fill_house
+    
+    mov bx, level_addr + 2 * (4*level_width + 4)
+    call fill_house
+
+    mov bx, level_addr + 2 * (6*level_width + 4)
+    call fill_house
+
+    ; bottom part
+    mov ax, 8
+    add cx, 3 ; trees eat into tunnel a bit, that's fine
+    mov dx, tree_char
+    mov bx, level_addr + 2 * (12*level_width + 1)
+    call fill_house
+
+    mov bx, level_addr + 2 * (13*level_width + 1)
+    call fill_house
+    
+    mov bx, level_addr + 2 * (14*level_width + 1)
+    call fill_house
+
+    mov bx, level_addr + 2 * (15*level_width + 1)
+    call fill_house
+
+    mov bx, level_addr + 2 * (16*level_width + 1)
     call fill_house
 
 init_entities:
@@ -278,12 +301,15 @@ can_move:
     add bx,level_addr
     pop dx
 
-    cmp word [bx],wall_char
-    je hit_wall
-
     ; check for enemy
     cmp byte [bx + 1], enemy_sentinel
     je hit_enemy
+    
+    cmp word [bx], wall_char
+    je hit_wall
+
+    cmp word [bx], house_char
+    je hit_wall
 
     ; passed checks - update position
     mov [player_pos],dx
@@ -478,8 +504,8 @@ reveal_fog_line_loop:
     add dh,ah
     add dl,al
     
-    cmp word [di],wall_char
-    je end_reveal_fog_line
+    cmp word [di], empty_char
+    jne end_reveal_fog_line
     loop reveal_fog_line_loop
 
 end_reveal_fog_line:
@@ -496,20 +522,28 @@ fill_wall:
     ret
 
 fill_house:
-    ; ax has stride
+    ; ax has p(fill) out of 10
     ; bx has wall start index
     ; cx has length
+    ; dx has char
+    push cx
+fill_house_loop:
+    push dx
     push bx
-    mov bx, 0x03
+    push ax
+    mov bx, 0x0a
     call rng_lcg
-    cmp dx, 0
+    pop ax
+    cmp dx, ax
     pop bx
-    jne skip
-    mov word [bx], house_char
+    pop dx
+    jge skip
+    mov word [bx], dx
 skip:
-    add bx, ax
+    add bx, 2
 
-    loop fill_house
+    loop fill_house_loop
+    pop cx
     ret
 
 ; ax is clobbered
@@ -568,9 +602,17 @@ random_empty_coord:
     shl bx,1
     add bx,level_addr
 
-    cmp word [bx], empty_char
-    jne random_empty_coord ; try again
+    ; if wall / house / enemy, try again
+    ; if empty / tree, we're good
 
+    cmp word [bx], empty_char
+    je found_empty_coord ; exit
+
+    cmp word [bx], tree_char
+    je found_empty_coord ; exit
+
+    jmp random_empty_coord ; try again
+found_empty_coord:
     call offset2xy
 
     ret
