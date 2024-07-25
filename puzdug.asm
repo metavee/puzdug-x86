@@ -28,6 +28,7 @@ enemy_sentinel: equ 0x03
 
 video_segment: equ 0xB800   ; Segment address for video memory
 row_width: equ 80           ; Width of the screen in characters
+screen_height: equ 25
 
 ; https://www.lookuptables.com/text/extended-ascii-table
 ; https://www.rapidtables.com/convert/number/decimal-to-hex.html?x=247
@@ -61,6 +62,9 @@ start:
     mov ds,ax
     mov ax, video_segment
     mov es,ax
+
+    ; move cursor to bottom
+    call scroll_cursor
     
     ; set RNG state
 	mov	ah, 0x00
@@ -363,6 +367,7 @@ hit_basic_enemy_player_hit:
 do_win:
 do_lose:
 do_exit:
+    call scroll_cursor
     int 0x20                ; Terminate the program
 
 ; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
@@ -642,3 +647,38 @@ hp_str:
 
 enemy_str:
     db "MON: 9", 0
+
+scroll_cursor:
+    ; scroll the screen by typing one page full of newlines in teletype
+    mov cx, screen_height
+scroll_cursor_loop:
+    call teletype_newline
+    call waiter
+    loop scroll_cursor_loop
+
+teletype_newline:
+    push ax
+    push bx
+    mov ah, 0x0E       ; BIOS teletype function
+    mov bh, 0         ; Page number (typically 0)
+    mov bl, 0x07      ; Text attribute (light gray on black)
+
+    mov al, 0x0d      ; \r
+    int 0x10          ; Call interrupt
+
+    mov al, 0x0a      ; \n
+    int 0x10
+    pop bx
+    pop ax
+    ret
+
+waiter:
+    ; Delay for a short time using a software loop
+    push cx
+    mov cx, 0xFFFF ; Outer loop count
+waiter_loop:
+    nop           ; Do nothing (no operation)
+    loop waiter_loop
+
+    pop cx
+    ret
