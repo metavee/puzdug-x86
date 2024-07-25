@@ -521,7 +521,7 @@ fog_heal_loop:
 
     ; compare current hp (bl) with max hp (bh) and clamp if necessary
     cmp bl, bh
-    jle heal_next
+    jbe heal_next
     mov bl, bh          ; clamp current hp to max hp
 
 heal_next:
