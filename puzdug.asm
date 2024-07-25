@@ -3,7 +3,7 @@ org 0x0100; for dosbox
 
 section .bss
 
-FOG_ENABLED: equ 1  ; enable 1 / disable 0
+FOG_ENABLED: equ 0  ; enable 1 / disable 0
 
 level_width: equ 27
 level_height: equ 18
@@ -369,10 +369,34 @@ hit_basic_enemy_enemy_died:
     dec byte [bx]
     cmp byte [bx], '0'
     je do_win
+    jmp render_level
 hit_basic_enemy_player_hit:
     ; dec player health and check
     sub byte [player_addr + current_hp_offset], enemy_atk
     jbe do_lose
+
+    ; special enemy behaviour
+    mov ah, [di + 2]
+    cmp ah, start_enemy_type + 5 ; phi
+    je teleport_enemy
+
+    jmp render_level
+teleport_enemy:
+    ; if enemy is alive, bx is the tile in the level with the sentinel
+    push bx
+
+    call random_empty_coord
+    mov cx, level_width
+    call xy2offset
+    shl dx, 1
+    add dx, level_addr
+    pop bx
+
+    mov di, dx
+
+    mov ax, [bx]
+    mov [di], ax
+    mov word [bx], empty_char
 
     jmp render_level
 
