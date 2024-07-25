@@ -19,7 +19,7 @@ enemy_str_addr: equ (enemy_str + 5)
 player_start_hp: equ 250
 player_atk: equ 40
 enemy_start_hp: equ 200
-enemy_atk: equ 40
+enemy_atk: equ 30
 
 num_start_enemies: equ 9
 
@@ -345,16 +345,16 @@ hit_wall:
     jmp render_level
 
 hit_enemy:
-    ; get enemy health
-    push bx ; save level data pointer
-    mov bx, [bx]
-    xor bh,bh
-    add bx, entity_arr + current_hp_offset
+    ; get pointer to enemy health
+    mov di, [bx]
+    and di, 0x00FF ; clear high bits
+    add di, entity_arr + current_hp_offset
 
     ; dec enemy health and check
-    sub byte [bx], player_atk
-    pop bx
+    sub byte [di], player_atk
     jbe hit_basic_enemy_enemy_died ; jump if <= 0
+
+    ; enemy didn't die, player gets hit
     jmp hit_basic_enemy_player_hit
 hit_basic_enemy_enemy_died:
     mov word [bx], empty_char
