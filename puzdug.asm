@@ -3,7 +3,7 @@ org 0x0100; for dosbox
 
 section .bss
 
-FOG_ENABLED: equ 0  ; enable 1 / disable 0
+FOG_ENABLED: equ 1  ; enable 1 / disable 0
 
 level_width: equ 27
 level_height: equ 18
