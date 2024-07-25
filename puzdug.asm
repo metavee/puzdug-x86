@@ -3,7 +3,7 @@ org 0x0100; for dosbox
 
 section .bss
 
-FOG_ENABLED: equ 1  ; enable 1 / disable 0
+FOG_ENABLED: equ 0  ; enable 1 / disable 0
 
 level_width: equ 27
 level_height: equ 18
@@ -15,6 +15,9 @@ fog_addr: resb level_size
 player_addr: equ entity_arr
 player_health_str_addr: equ (hp_str + 4)
 enemy_str_addr: equ (enemy_str + 5)
+
+player_atk: equ 40
+enemy_atk: equ 40
 
 num_start_enemies: equ 9
 
@@ -163,8 +166,8 @@ init_entities:
     ; Set player coordinate
     call random_empty_coord
     mov [player_pos],dx
-    mov byte [player_addr + current_hp_offset],0xff
-    mov byte [player_addr + max_hp_offset],0xff
+    mov byte [player_addr + current_hp_offset],250
+    mov byte [player_addr + max_hp_offset],250
     mov byte [player_addr + type_offset],'@'
 
     mov cx,num_start_enemies
@@ -347,22 +350,20 @@ hit_enemy:
     add bx, entity_arr + current_hp_offset
 
     ; dec enemy health and check
-    sub byte [bx], 40
-    cmp byte [bx], 0
+    sub byte [bx], player_atk
     pop bx
-    jne hit_basic_enemy_player_hit
+    jbe hit_basic_enemy_enemy_died ; jump if <= 0
+    jmp hit_basic_enemy_player_hit
 hit_basic_enemy_enemy_died:
     mov word [bx], empty_char
     mov bx, enemy_str_addr
-    sub byte [bx], 40
+    dec byte [bx]
     cmp byte [bx], '0'
     je do_win
 hit_basic_enemy_player_hit:
     ; dec player health and check
-    dec byte [player_addr + current_hp_offset]
-    cmp byte [player_addr + current_hp_offset], 0
-
-    je do_lose
+    sub byte [player_addr + current_hp_offset], enemy_atk
+    jbe do_lose
 
     jmp render_level
 
