@@ -262,6 +262,7 @@ draw_health:
     mov bx,hp_str
     mov dl,level_width+5
     mov dh,5
+    mov ah, 0x0f ; white text black bg
     call draw_text
 
 draw_enemies_left:
@@ -269,6 +270,7 @@ draw_enemies_left:
     mov bx, enemy_str
     mov dl,level_width+5
     mov dh,7
+    mov ah, 0x0f ; white text black bg
     call draw_text
 
 get_input:
@@ -365,10 +367,30 @@ hit_basic_enemy_player_hit:
     jmp render_level
 
 do_win:
+    mov bx,victory_str
+    mov dl,5
+    mov dh,8
+    mov ah, 0x0E ; yellow text black bg
+    call draw_text
+    mov cx, 0x32 ; Wait a while before  exiting
+do_win_wait:
+    call waiter
+    loop do_win_wait
+    jmp do_exit
 do_lose:
+    mov bx,game_over_str
+    mov dl,9
+    mov dh,8
+    mov ah, 0x04 ; red text black bg
+    call draw_text
+    mov cx, 0x32 ; Wait a while before  exiting
+do_lose_wait:
+    call waiter
+    loop do_lose_wait
 do_exit:
     call scroll_cursor
     int 0x20                ; Terminate the program
+
 
 ; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
 ; dw 0xAA55                   ; Boot sector signature
@@ -570,7 +592,7 @@ skip:
     pop cx
     ret
 
-; ax is clobbered
+; ah is text color, al is clobbered
 ; bx is start of null-terminated hp_str (clobbered)
 ; dx is draw x/y (clobbered)
 draw_text:
@@ -578,7 +600,6 @@ draw_text:
     call xy2offset
     shl dx,1
     mov di,dx
-    mov ah, 0x0f ; white text black bg
 draw_text_loop:
     mov al,[bx]
     test al,al
@@ -647,6 +668,12 @@ hp_str:
 
 enemy_str:
     db "MON: 9", 0
+
+game_over_str:
+    db "YOU DIED", 0
+
+victory_str:
+    db "VICTORY ATTAINED", 0
 
 scroll_cursor:
     ; scroll the screen by typing one page full of newlines in teletype
