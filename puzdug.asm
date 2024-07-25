@@ -3,7 +3,7 @@ org 0x0100; for dosbox
 
 section .bss
 
-FOG_ENABLED: equ 0  ; enable 1 / disable 0
+FOG_ENABLED: equ 1  ; enable 1 / disable 0
 
 level_width: equ 27
 level_height: equ 18
@@ -16,10 +16,10 @@ player_addr: equ entity_arr
 player_health_str_addr: equ (hp_str + 4)
 enemy_str_addr: equ (enemy_str + 5)
 
-player_start_hp: equ 250
-player_atk: equ 40
-enemy_start_hp: equ 200
-enemy_atk: equ 30
+player_start_hp: equ 125
+player_atk: equ 20
+enemy_start_hp: equ 100
+enemy_atk: equ 15
 
 num_start_enemies: equ 9
 
