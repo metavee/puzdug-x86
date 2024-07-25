@@ -16,7 +16,9 @@ player_addr: equ entity_arr
 player_health_str_addr: equ (hp_str + 4)
 enemy_str_addr: equ (enemy_str + 5)
 
+player_start_hp: equ 250
 player_atk: equ 40
+enemy_start_hp: equ 200
 enemy_atk: equ 40
 
 num_start_enemies: equ 9
@@ -166,8 +168,8 @@ init_entities:
     ; Set player coordinate
     call random_empty_coord
     mov [player_pos],dx
-    mov byte [player_addr + current_hp_offset],250
-    mov byte [player_addr + max_hp_offset],250
+    mov byte [player_addr + current_hp_offset],player_start_hp
+    mov byte [player_addr + max_hp_offset],player_start_hp
     mov byte [player_addr + type_offset],'@'
 
     mov cx,num_start_enemies
@@ -196,8 +198,8 @@ init_enemies_loop:
     ; store enemy attributes in array
     mov di, ax
     add di, entity_arr
-    mov byte [di + current_hp_offset], 200
-    mov byte [di + max_hp_offset], 200
+    mov byte [di + current_hp_offset], enemy_start_hp
+    mov byte [di + max_hp_offset], enemy_start_hp
     mov byte [di + type_offset], 0xEA
 
     loop init_enemies_loop
@@ -505,20 +507,28 @@ reveal_fog:
 
 fog_heal:
     ; heal all entities
-    mov cx, num_start_enemies+1
+    mov cx, num_start_enemies + 1
     mov di, entity_arr + current_hp_offset
 fog_heal_loop:
-    ; increase current hp by amount of fog revealed
-    add byte [di], bh
-    push bx
+    ; juggle amount of fog revealed
+    mov ah, bh
 
-    ; set up comparison of current vs max hp
+    ; load current and max health into bx
     mov bx, [di]
-    cmp bh, bl
-    jg heal_next
-    mov byte [di], bh ; reset current hp to max hp
+    
+    ; increase current hp by amount of fog revealed
+    add bl, ah
+
+    ; compare current hp (bl) with max hp (bh) and clamp if necessary
+    cmp bl, bh
+    jle heal_next
+    mov bl, bh          ; clamp current hp to max hp
+
 heal_next:
-    pop bx
+    ; store the updated current hp back
+    mov [di], bx
+
+    ; move to next entity's current hp offset
     add di, max_entity_offset
 
     loop fog_heal_loop
