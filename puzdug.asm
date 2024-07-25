@@ -3,6 +3,8 @@ org 0x0100; for dosbox
 
 section .bss
 
+FOG_ENABLED: equ 1  ; enable 1 / disable 0
+
 level_width: equ 27
 level_height: equ 18
 level_size: equ level_width*level_height         ; level_width * level_height
@@ -72,7 +74,7 @@ init_level:
 init_level_loop:
     ; empty char by default
     mov word [bx], empty_char
-    mov byte [di], 0 ; fog enable 1 / disable with 0
+    mov byte [di], FOG_ENABLED
 
     add bx, 2
     add di, 1
@@ -134,6 +136,9 @@ init_random_houses:
     mov ax, 8
     add cx, 3 ; trees eat into tunnel a bit, that's fine
     mov dx, tree_char
+    mov bx, level_addr + 2 * (11*level_width + 1)
+    call fill_house
+
     mov bx, level_addr + 2 * (12*level_width + 1)
     call fill_house
 
