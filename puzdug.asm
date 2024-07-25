@@ -163,8 +163,8 @@ init_entities:
     ; Set player coordinate
     call random_empty_coord
     mov [player_pos],dx
-    mov byte [player_addr + current_hp_offset],15
-    mov byte [player_addr + max_hp_offset],15
+    mov byte [player_addr + current_hp_offset],0xff
+    mov byte [player_addr + max_hp_offset],0xff
     mov byte [player_addr + type_offset],'@'
 
     mov cx,num_start_enemies
@@ -193,8 +193,8 @@ init_enemies_loop:
     ; store enemy attributes in array
     mov di, ax
     add di, entity_arr
-    mov byte [di + current_hp_offset], 3
-    mov byte [di + max_hp_offset], 3
+    mov byte [di + current_hp_offset], 200
+    mov byte [di + max_hp_offset], 200
     mov byte [di + type_offset], 0xEA
 
     loop init_enemies_loop
@@ -347,14 +347,14 @@ hit_enemy:
     add bx, entity_arr + current_hp_offset
 
     ; dec enemy health and check
-    dec byte [bx]
+    sub byte [bx], 40
     cmp byte [bx], 0
     pop bx
     jne hit_basic_enemy_player_hit
 hit_basic_enemy_enemy_died:
     mov word [bx], empty_char
     mov bx, enemy_str_addr
-    dec byte [bx]
+    sub byte [bx], 40
     cmp byte [bx], '0'
     je do_win
 hit_basic_enemy_player_hit:
