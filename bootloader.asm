@@ -1,3 +1,5 @@
+BITS 16
+
 org 0x7C00  ; Origin point for the bootloader (BIOS loads it here)
 
 start:

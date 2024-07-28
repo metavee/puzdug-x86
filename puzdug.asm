@@ -1,3 +1,5 @@
+BITS 16
+
 ; org 0x0100; for dosbox
 ; org 0x7c00 ; for boot
 org 0x0600 ; for chain from bootloader
