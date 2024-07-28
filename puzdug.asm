@@ -1,5 +1,6 @@
-org 0x0100; for dosbox
+; org 0x0100; for dosbox
 ; org 0x7c00 ; for boot
+org 0x0600 ; for chain from bootloader
 
 section .bss
 
@@ -423,7 +424,8 @@ do_lose_wait:
     loop do_lose_wait
 do_exit:
     call scroll_cursor
-    int 0x20                ; Terminate the program
+    ; int 0x20                ; Terminate the program
+    jmp $
 
 
 ; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
