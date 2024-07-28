@@ -746,7 +746,7 @@ teletype_newline:
 waiter:
     ; Delay for a short time using a software loop
     push cx
-    mov cx, 0xFFFF ; Outer loop count
+    mov cx, 0x00FF ; Outer loop count (reduce for blinkenlights and old systems)
 waiter_loop:
     nop           ; Do nothing (no operation)
     loop waiter_loop
