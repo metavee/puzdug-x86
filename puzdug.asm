@@ -1,8 +1,10 @@
 BITS 16
 
-; org 0x0100; for dosbox
-; org 0x7c00 ; for boot
-org 0x0600 ; for chain from bootloader
+%ifdef DOS
+    org 0x100
+%else
+    org 0x600 ; not 0x7C00, but the load address from bootloader.asm
+%endif
 
 section .bss
 
@@ -426,12 +428,11 @@ do_lose_wait:
     loop do_lose_wait
 do_exit:
     call scroll_cursor
-    ; int 0x20                ; Terminate the program
-    jmp $
-
-
-; times 510-($-$$) db 0       ; Fill the rest of the boot sector with zeroes
-; dw 0xAA55                   ; Boot sector signature
+%ifdef DOS
+    int 0x20
+%else
+    jmp $ ; infinite loop
+%endif
 
 ; read keylevel input into AL
 read_keyboard:
