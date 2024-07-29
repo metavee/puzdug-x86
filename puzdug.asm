@@ -462,8 +462,8 @@ xy2offset:
     push dx ; save value since multiplication overwrites
 
     ; Calculate the row offset
-    xor al,al
-    mov ah, dh        ; Move y-coordinate to ax (without sign extension)
+    xor ah,ah
+    mov al, dh        ; Move y-coordinate to ax (without sign extension)
     mul cx              ; ax *= row_width
 
     ; Calculate total offset with x-coordinate
