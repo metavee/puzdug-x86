@@ -1,4 +1,4 @@
-BITS 16
+cpu	8086
 
 %ifdef DOS
     org 0x100
@@ -243,7 +243,8 @@ render_enemy_type:
     ; if entity, substitute in entity type
     ; al is now the offset in the entity array
     push bx
-    movzx bx, al
+    xor bh, bh
+    mov bl, al
     add bx, entity_arr + type_offset
     mov al, [bx]
     pop bx
@@ -461,7 +462,8 @@ xy2offset:
     push dx ; save value since multiplication overwrites
 
     ; Calculate the row offset
-    movzx ax, dh        ; Move y-coordinate to ax (without sign extension)
+    xor al,al
+    mov ah, dh        ; Move y-coordinate to ax (without sign extension)
     mul cx              ; ax *= row_width
 
     ; Calculate total offset with x-coordinate

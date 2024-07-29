@@ -13,8 +13,8 @@ boot_out := infile_no_ext + "-boot.bin"
 # # Size of 360 KB floppy in bytes
 TARGET_SIZE := "368640"
 
-qemu: unpadded-bootable
-    qemu-system-i386 -cpu base -m 1024k -drive file={{boot_out}},format=raw -serial stdio
+qemu: padded-bootable
+    qemu-system-i386 -cpu base -m 1024k -drive if=floppy,file={{boot_out}},format=raw -serial stdio
 
 blinken: unpadded-bootable
     blinkenlights -r {{boot_out}}

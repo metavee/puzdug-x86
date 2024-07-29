@@ -1,4 +1,4 @@
-BITS 16
+cpu	8086
 
 org 0x7C00  ; Origin point for the bootloader (BIOS loads it here)
 
@@ -35,7 +35,8 @@ disk_error:
     jmp $
 
 print_string:
-    pusha
+    push ax
+    push si
     mov ah, 0x0E        ; BIOS teletype function
 print_char:
     mov al, [si]
@@ -45,7 +46,8 @@ print_char:
     inc si
     jmp print_char
 print_done:
-    popa
+    pop si
+    pop ax
     ret
 
 boot_drive db 0         ; Storage for boot drive number
