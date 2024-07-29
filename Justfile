@@ -45,7 +45,7 @@ padded-bootable: unpadded-bootable
     # Ensure the padding size is not negative
     if [[ "$padding_size" -ge 0 ]]; then
     # Pad the image file with zero bytes
-    dd if=/dev/zero bs=1 count=$padding_size >> {{boot_out}}
+    head -c $padding_size < /dev/zero >> {{boot_out}}
     echo "{{boot_out}} has been zero-padded to $target_size bytes."
     else
     echo "Error: {{boot_out}} is already larger than $target_size bytes."
