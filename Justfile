@@ -8,7 +8,7 @@ listing_out := infile_no_ext + ".lst"
 bootloader_in := "bootloader.asm"
 bootloader_out := "bootloader.bin"
 
-boot_out := infile_no_ext + "-boot.bin"
+boot_out := infile_no_ext + "-boot.img"
 
 # # Size of 360 KB floppy in bytes
 TARGET_SIZE := "368640"
