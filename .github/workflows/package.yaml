@@ -1,0 +1,32 @@
+name: Package
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install just
+      uses: extractions/setup-just@v1
+      with:
+        just-version: 1.32.0
+
+    - name: Install NASM
+      uses: ilammy/setup-nasm@v1
+    
+    - name: Build project
+      run: just build
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          puzdug.com
+          puzdug-boot.img

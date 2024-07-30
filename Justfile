@@ -8,7 +8,7 @@ listing_out := infile_no_ext + ".lst"
 bootloader_in := "bootloader.asm"
 bootloader_out := "bootloader.bin"
 
-boot_out := infile_no_ext + "-boot.bin"
+boot_out := infile_no_ext + "-boot.img"
 
 # # Size of 360 KB floppy in bytes
 TARGET_SIZE := "368640"
@@ -34,8 +34,9 @@ build-stage2:
     nasm -f bin -D BOOT -o {{stage2_out}} {{infile}} -l {{listing_out}}
 
 padded-bootable: unpadded-bootable
-    #!/bin/bash -euo pipefail
-    
+    #!/bin/bash
+    set -euo pipefail
+
     target_size={{ TARGET_SIZE }}
     # Get the current size of the image file
     current_size=$(wc -c < {{boot_out}})
