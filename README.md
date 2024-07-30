@@ -5,6 +5,8 @@ puzdug x86 is a tiny game written in 16-bit real-mode x86 assembly.
 It is written such that it can be booted from a floppy on a BIOS-based computer.
 Although it does not fit entirely in the boot sector, it comes with a bootloader that will load the game from a known location on disk and boot into that.
 
+![game screenshot](game-screenshot.png)
+
 ## Downloads
 
 Tagged commits are accompanied with a Github [Release](https://github.com/metavee/boot-puzzle-dungeon/releases) with the DOS-compatible `puzdug.com` and the bootable floppy image `puzdug-boot.img` attached.
