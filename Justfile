@@ -21,14 +21,19 @@ blinken: unpadded-bootable
 
 build: build-dos padded-bootable
 
-unpadded-bootable: build-bootloader build-stage2
+unpadded-bootable: build-bootloader
     cat {{bootloader_out}} {{stage2_out}} > {{boot_out}}
 
 build-dos:
     nasm -f bin -D DOS -o {{dos_out}} {{infile}} -l {{listing_out}}
 
-build-bootloader:
-    nasm -f bin -o {{bootloader_out}} {{bootloader_in}}
+build-bootloader: build-stage2
+    #!/bin/bash
+    SECTOR_SIZE=512
+    file_size=$(wc -c < "{{stage2_out}}")
+    num_sectors=$(( (file_size + SECTOR_SIZE - 1) / SECTOR_SIZE ))
+
+    nasm -f bin -DNUM_SECTORS=$num_sectors -o {{bootloader_out}} {{bootloader_in}}
 
 build-stage2:
     nasm -f bin -D BOOT -o {{stage2_out}} {{infile}} -l {{listing_out}}
