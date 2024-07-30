@@ -1,0 +1,25 @@
+name: Package
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install just
+      uses: extractions/setup-just@v1
+      with:
+        just-version: 1.32.0
+
+    - name: Install NASM
+      uses: ilammy/setup-nasm@v1
+
+    - name: Verify NASM installation
+      run: nasm -v
+    
+    - name: Build project
+      run: just build
