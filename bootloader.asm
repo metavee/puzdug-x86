@@ -14,7 +14,7 @@ start:
     ; Load the second sector from the disk
     ; Use the drive number in 'boot_drive'
     mov ah, 0x02        ; BIOS read sector function
-    mov al, 0x02        ; Number of sectors to read TODO: parameterize this
+    mov al, 0x02        ; Number of sectors to read
     mov ch, 0x00        ; Cylinder number (0)
     mov cl, 0x02        ; Sector number (1-based, so 2 means second sector)
     mov dh, 0x00        ; Head number (0)
