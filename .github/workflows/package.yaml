@@ -20,6 +20,12 @@ jobs:
 
     - name: Verify NASM installation
       run: nasm -v
+
+    - name: just build-dos
+      run: just build-dos
+
+    - name: just unpadded-bootable
+      run: just unpadded-bootable
     
     - name: Build project
       run: just build
