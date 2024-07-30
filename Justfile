@@ -34,8 +34,9 @@ build-stage2:
     nasm -f bin -D BOOT -o {{stage2_out}} {{infile}} -l {{listing_out}}
 
 padded-bootable: unpadded-bootable
-    #!/bin/bash -euo pipefail
-    
+    #!/bin/bash
+    set -euo pipefail
+
     target_size={{ TARGET_SIZE }}
     # Get the current size of the image file
     current_size=$(wc -c < {{boot_out}})
