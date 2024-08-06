@@ -7,9 +7,8 @@ start:
     mov [boot_drive], dl
 
     ; Display a message to indicate bootloader is running
-    mov si, msg
-    call print_string
-
+    mov si, init_msg
+    call println
 
     ; Load the second sector from the disk
     ; Use the drive number in 'boot_drive'
@@ -31,10 +30,10 @@ start:
 disk_error:
     ; Display error message and halt
     mov si, err_msg
-    call print_string
+    call println
     jmp $
 
-print_string:
+println:
     push ax
     push si
     mov ah, 0x0E        ; BIOS teletype function
@@ -46,13 +45,19 @@ print_char:
     inc si
     jmp print_char
 print_done:
+    ; newline
+    mov al, 0x0D
+    int 0x10
+    mov al, 0x0A
+    int 0x10
+
     pop si
     pop ax
     ret
 
 boot_drive db 0         ; Storage for boot drive number
 
-msg db 'Bootloader running...', 0
+init_msg db 'Bootloader running...', 0
 err_msg db 'Disk load error', 0
 
 times 510-($-$$) db 0   ; Fill the rest of the 512 bytes with zeros
