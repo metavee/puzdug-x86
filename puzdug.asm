@@ -21,10 +21,10 @@ player_addr: equ entity_arr
 player_health_str_addr: equ (hp_str + 4)
 enemy_str_addr: equ (enemy_str + 5)
 
-player_start_hp: equ 125
+player_start_hp: equ 150
 player_atk: equ 20
 enemy_start_hp: equ 100
-enemy_atk: equ 10
+enemy_atk: equ 15
 
 num_start_enemies: equ 9
 
@@ -428,8 +428,14 @@ do_lose_wait:
     call waiter
     loop do_lose_wait
 do_exit:
-    call scroll_cursor
+    mov bx,exit_str
+    mov dl,2
+    mov dh,20
+    mov ah, 0x0f ; white text black bg
+    call draw_text
 %ifdef DOS
+    call read_keyboard
+    call scroll_cursor
     int 0x20
 %else
     jmp $ ; infinite loop
@@ -723,6 +729,13 @@ game_over_str:
 
 victory_str:
     db "VICTORY ATTAINED", 0
+
+exit_str:
+%ifdef DOS
+    db "The game has ended. Press any key to exit", 0
+%else
+    db "The game has ended. You may now power off your computer", 0
+%endif
 
 scroll_cursor:
     ; scroll the screen by typing one page full of newlines in teletype
