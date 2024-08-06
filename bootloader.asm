@@ -10,12 +10,6 @@ start:
     mov si, init_msg
     call println
 
-    ; Convert boot drive number to ASCII and print it
-    mov al, dl
-    add al, '0'
-    mov si, boot_from_msg
-    call println
-
     mov si, loading_msg
     call println
 
@@ -58,7 +52,11 @@ print_char:
     inc si
     jmp print_char
 print_done:
-    ; newline
+    ; 2 newlines
+    mov al, 0x0D
+    int 0x10
+    mov al, 0x0A
+    int 0x10
     mov al, 0x0D
     int 0x10
     mov al, 0x0A
@@ -78,7 +76,6 @@ read_keyboard:
 boot_drive db 0         ; Storage for boot drive number
 
 init_msg db 'Bootloader running...', 0
-boot_from_msg db 'Booting from drive     ', 0
 ready_msg db 'Loaded program into memory. Press any key to boot.', 0
 loading_msg db 'Loading ', NUM_SECTORS_STR, ' sectors from disk...', 0
 err_msg db 'Disk load error', 0
