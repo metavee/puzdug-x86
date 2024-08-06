@@ -24,7 +24,7 @@ enemy_str_addr: equ (enemy_str + 5)
 player_start_hp: equ 125
 player_atk: equ 20
 enemy_start_hp: equ 100
-enemy_atk: equ 15
+enemy_atk: equ 10
 
 num_start_enemies: equ 9
 
@@ -47,7 +47,7 @@ screen_height: equ 25
 wall_char: equ 0x04b2 ; black bg, red fg, heavy texture ▓
 empty_char: equ 0x072e ; black bg, grey fg, .
 fog_char: equ 0x07f7 ; black bg, grey fg, almost equal ≈
-player_char: equ 0x0f40 ; black bg, white fg, @
+player_char: equ 0x0f01 ; black bg, white fg, smiley
 house_char: equ 0x0d7f ; black bg, pink fg, house symbol
 tree_char: equ 0x0206 ; black bg, green fg, spade symbol
 
